@@ -59,11 +59,16 @@ extract "${MY_DIR}/proprietary-files.txt" "${SRC}" "${KANG}" --section "${SECTIO
 
 # Fix proprietary blobs
 BLOB_ROOT="$ANDROID_ROOT"/vendor/"$VENDOR"/"$DEVICE_COMMON"/proprietary
+sed -i 's|EGL_KHR_surfaceless_context|EGL_HAX_surfaceless_context|g' $BLOB_ROOT/vendor/lib/egl/libGLES_mali.so
 
 # Remove troublesome symbol from mali lib
 
 # Update trustlets location
 sed -i 's|system/app|vendor/app|g' $BLOB_ROOT/vendor/bin/mcDriverDaemon
+
+# Mali blobs needs arm libm intrinsics deprecated in Q
+patchelf --replace-needed libm.so libw.so $BLOB_ROOT/vendor/lib/egl/libGLES_mali.so
+
 
 # Replace protobuf with vndk29 compat libs for specified libs
 "${PATCHELF}" --replace-needed libprotobuf-cpp-lite.so libprotobuf-cpp-lite-v29.so $BLOB_ROOT/vendor/lib/libMcClient.so
